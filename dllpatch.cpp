@@ -65,16 +65,18 @@ void ShowSunInputDialog() {
     }
 }
 
-// Горячая клавиша (например, F1)
+// ГЛОБАЛЬНАЯ ФУНКЦИЯ — совместима с WinAPI
+DWORD WINAPI SunInputDialogThreadProc(LPVOID lpParam) {
+    ShowSunInputDialog();
+    return 0;
+}
+
+// В KeyboardProc:
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode == HC_ACTION && wParam == WM_KEYDOWN) {
         KBDLLHOOKSTRUCT* p = (KBDLLHOOKSTRUCT*)lParam;
         if (p->vkCode == VK_F1) {
-            // Запускаем в отдельном потоке, чтобы не блокировать игру
-            CreateThread(NULL, 0, [](LPVOID) -> DWORD {
-                ShowSunInputDialog();
-                return 0;
-            }, NULL, 0, NULL);
+            CreateThread(NULL, 0, SunInputDialogThreadProc, NULL, 0, NULL);
         }
     }
     return CallNextHookEx(NULL, nCode, wParam, lParam);
